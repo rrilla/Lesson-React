@@ -1,31 +1,82 @@
-import React, { createRef } from "react";
+import React, { useState } from "react";
 import "./App.css";
+import MovieList from "./MovieList";
 
 function App() {
-  const h2Element = createRef(); //가상의 빈 ref객체 만들어서 변수에넣음, 접근할 dom에 ref={이름}
+  const [movie, setMovie] = useState({
+    title: "",
+    rating: "",
+    medium_cover_image: "",
+  });
 
-  function changeColor(e) {
-    console.log(h2Element);
-    h2Element.current.style.color = "red";
-    //e.target.textContent.style.color = "red";
-    // e.target.style.color = "red";
-    //let a = document.querySelector("h1");
-    //a.style.fontSize = "200px";
+  function inputHandle(e) {
+    setMovie({ ...movie, [e.target.name]: e.target.value });
+    console.log(movie);
   }
 
-  function h1Click(e) {
-    console.log("h1 클릭", e.target.value);
-    e.target.style.color = "red";
-    e.target.style.fontSize = "100px";
+  function submitMovie(e) {
+    e.preventDefault(); //form안의 버튼은 submit할라고 난리침 그걸 막는거
+    let jsonMovie = JSON.stringify(movie);
+    console.log(jsonMovie);
+
+    fetch("http://10.100.102.2:8000/api/movie", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=utf-8", //json인데 utf-8로 던질게
+      },
+      body: jsonMovie,
+    })
+      .then((res) => res.text())
+      .then((res) => {
+        if (res === "ok") {
+          alert("영화 등록 성공.");
+        } else {
+          alert("영화 등록 실패.");
+        }
+      });
+  }
+
+  function reset(e) {
+    e.preventDefault();
+    setMovie({
+      title: "",
+      rating: "",
+      medium_cover_image: "",
+    });
+    //document.querySelector("input").value = user;
   }
 
   return (
     <div>
-      <h1 onClick={h1Click}>1</h1>
-      <hr />
-      <h2 ref={h2Element}>2</h2>
-      <hr />
-      <button onClick={changeColor}>클릭</button>
+      <form>
+        <input
+          type="text"
+          onChange={inputHandle}
+          name="title"
+          value={movie.title}
+          placeholder="title 입력하셈."
+        />
+        <br />
+        <input
+          type="text"
+          onChange={inputHandle}
+          name="rating"
+          value={movie.rating}
+          placeholder="rating 입력하셈."
+        />
+        <br />
+        <input
+          type="text"
+          onChange={inputHandle}
+          name="medium_cover_image"
+          value={movie.medium_cover_image}
+          placeholder="medium_cover_image 입력하셈."
+        />
+        <br />
+        <button onClick={reset}>리셋</button>
+        <button onClick={submitMovie}>전송</button>
+      </form>
+      <MovieList></MovieList>
     </div>
   );
 }
